@@ -12,6 +12,7 @@
 
 # Temporary files, for example, from tests.
 /tmp/
+.DS_Store
 
 # If the VM crashes, it generates a dump, let's ignore it too.
 erl_crash.dump
@@ -22,3 +23,4 @@ erl_crash.dump
 # Ignore package tarball (built via "mix hex.build").
 typed_lisp-*.tar
 
+typed_lisp

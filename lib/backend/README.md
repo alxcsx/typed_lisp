@@ -4,6 +4,7 @@ Responsável por interpretar ou compilar a AST final
 
 Composto por:
 - Gerador de Código
+- Interpretador
 - Ponte de FFI
 - Runtime
 
