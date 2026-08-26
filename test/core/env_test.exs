@@ -43,5 +43,9 @@ defmodule Core.EnvTest do
       env = Env.new()
       assert Env.get_var(env, "misisng") == nil
     end
+
+    test "Return Nil for nil env" do
+      assert Env.get_var(nil, "abacate") == nil
+    end
   end
 end

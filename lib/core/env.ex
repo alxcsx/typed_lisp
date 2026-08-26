@@ -22,10 +22,10 @@ defmodule Core.Env do
 
   defp lookup(env, field, key) do
     map = Map.fetch!(env, field)
+
     case Map.fetch(map, key) do
       {:ok, val} -> val
       :error -> lookup(env.parent, field, key)
     end
   end
-
 end
