@@ -2,11 +2,8 @@ defmodule Core.AST do
   @moduledoc """
   Representação em memória de cada elemento da arvore de síntaxe abstrata.
   """
-  # struct genérica
-  defstruct [:type, :value, :meta]
-
   # Literals
-  defmodule Literal, do: defstruct([:value, :meta])
+  defmodule Literal, do: defstruct([:value, :type, :meta])
   defmodule Identifier, do: defstruct([:name, :meta])
   defmodule List, do: defstruct([:elements, :meta])
   defmodule Map, do: defstruct([:pairs, :meta])

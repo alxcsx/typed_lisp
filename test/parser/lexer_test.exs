@@ -4,14 +4,20 @@ defmodule Parser.LexerTest do
 
   describe "Token generation" do
     test "tokenizes literals" do
-      code = "42 \"hello world\" :key"
+      code = "42 -42 \"hello world\" :key 0.25 -3.14 0 00 01"
 
       assert Lexer.run(code) ==
                {:ok,
                 [
                   {:integer, 1, 42},
+                  {:integer, 1, -42},
                   {:string, 1, "hello world"},
-                  {:symbol, 1, :key}
+                  {:symbol, 1, :key},
+                  {:float, 1, 0.25},
+                  {:float, 1, -3.14},
+                  {:integer, 1, 0},
+                  {:Integer, 1, 0},
+                  {:Integer, 1, 1}
                 ]}
     end
 
@@ -29,7 +35,9 @@ defmodule Parser.LexerTest do
                   {:")", 1}
                 ]}
     end
+  end
 
+  describe "text handling" do
     test "tracks line numbers correctly" do
       code = """
       (def a
