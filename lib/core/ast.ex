@@ -21,7 +21,7 @@ defmodule Core.AST do
   defmodule FFI, do: defstruct([:module, :function, :args, meta: %{}])
 
   # Macros, essas estruturas vão ter comportamento definido no MacroExpander, não vão pra runtime
-  defmodule DefMacro, do: defstruct([:name, :args, :body, meta: %{}])
+  defmodule DefMacro, do: defstruct([:name, :args, :body, :compiled_fn, meta: %{}])
   defmodule Quote, do: defstruct([:body, meta: %{}])
   defmodule Unquote, do: defstruct([:body, meta: %{}])
   defmodule Spread, do: defstruct([:expr, meta: %{}])
