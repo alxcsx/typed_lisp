@@ -19,6 +19,8 @@ defmodule TypedLisp.MixProject do
   end
 
   defp deps do
-    []
+    [
+      {:junit_formatter, "~> 3.4", only: [:test]}
+    ]
   end
 end

@@ -42,5 +42,11 @@ jobs:
       - name: Run tests
         run: mix test
 
+      - name: Publish Test Report
+        uses: mikepenz/action-junit-report@v4
+        if: success() || failure()
+        with:
+          report_paths: '_build/test/lib/*/test-junit-report.xml'
+
       - name: Build CLI binary
         run: mix escript.build
