@@ -1,10 +1,8 @@
-formatters = [ExUnit.CLIFormatter]
-
 formatters =
   if System.get_env("CI") do
-    [JUnitFormatter | formatters]
+    [JUnitFormatter]
   else
-    formatters
+    [ExUnit.CLIFormatter]
   end
 
 ExUnit.configure(exclude: [:nice_to_have])
