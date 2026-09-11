@@ -16,8 +16,8 @@ defmodule Parser.LexerTest do
                   {:float, 1, 0.25},
                   {:float, 1, -3.14},
                   {:integer, 1, 0},
-                  {:Integer, 1, 0},
-                  {:Integer, 1, 1}
+                  {:integer, 1, 0},
+                  {:integer, 1, 1}
                 ]}
     end
 
@@ -62,8 +62,8 @@ defmodule Parser.LexerTest do
                {:ok,
                 [
                   {:"(", 1},
-                  {:integer, 1, "1"},
-                  {:integer, 2, "3"},
+                  {:integer, 1, 1},
+                  {:integer, 2, 3},
                   {:")", 2}
                 ]}
     end
