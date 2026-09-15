@@ -29,6 +29,7 @@ defmodule Parser.SyntaxAnalyzer do
 
   defp parse_all(tokens, forms) do
     {form, rest} = parse_form(tokens)
+    # loop pra continuar parseando até acabar os tokens
     parse_all(rest, [form | forms])
   end
 
@@ -43,12 +44,15 @@ defmodule Parser.SyntaxAnalyzer do
   # (a b c) -> List
   defp parse_form([{:"(", line} | rest]) do
     {elements, remaining} = parse_until(rest, :")", [])
+    # %AST.List vem do Core.AST
     {%AST.List{elements: elements, meta: %{line: line}}, remaining}
   end
 
   # [a b] -> Tuple
   defp parse_form([{:"[", line} | rest]) do
     {elements, remaining} = parse_until(rest, :"]", [])
+    # A tupla não tem % por causa do Alias que foi feito no começo do módulo
+    # essa notação de tupla não existe no LISP original
     {%Tuple{elements: elements, meta: %{line: line}}, remaining}
   end
 

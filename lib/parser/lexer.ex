@@ -34,27 +34,37 @@ defmodule Parser.Lexer do
   # ligada) e revertidos no fim.
   # -----------------------------------------------------------------
 
+  # esse tipo de funçao tem multiplas clausulas. Se entrar em uma clausula, as outras nao sao executadas.
+  # Se nao entrar em nenhuma clausula, o Elixir levanta um erro de "no function clause matching"
+
   defp scan([], _line, tokens) do
+    # quando acabar, reverte a lista de tokens para a ordem correta e retorna
     Enum.reverse(tokens)
   end
 
   defp scan([?\n | rest], line, tokens) do
+    # contador de linhas quando há quebra de linha
     scan(rest, line + 1, tokens)
   end
 
   defp scan([char | rest], line, tokens) when char in [?\s, ?\t, ?\r] do
+    # descarta espaços, tabs e carriage return
     scan(rest, line, tokens)
   end
 
   # Comentário: ';' consome até a quebra de linha (que sobra e é
   # tratada pela cláusula acima, mantendo a contagem certa).
   defp scan([?; | rest], line, tokens) do
+    # até ser uma quebra de linha, descarte todos os chars
     remaining = Enum.drop_while(rest, fn char -> char != ?\n end)
     scan(remaining, line, tokens)
   end
 
   # Estruturais. Viram tuplas de 2 elementos, sem valor.
+  # [?( | rest] pattern matching: se o primeiro elemento da lista for '(', então entra nessa clausula. O resto da lista é colocado na variavel rest
+  # Adicionando o token de abertura de parênteses à lista de tokens
   defp scan([?( | rest], line, tokens), do: scan(rest, line, [{:"(", line} | tokens])
+  # fazendo a mesma coisa para os outros tokens estruturais
   defp scan([?) | rest], line, tokens), do: scan(rest, line, [{:")", line} | tokens])
   defp scan([?[ | rest], line, tokens), do: scan(rest, line, [{:"[", line} | tokens])
   defp scan([?] | rest], line, tokens), do: scan(rest, line, [{:"]", line} | tokens])
@@ -87,6 +97,8 @@ defmodule Parser.Lexer do
     scan(remaining, line, [classify(word, line) | tokens])
   end
 
+  # Aqui ja identificamos praticamente toda a gramática de LISP
+
   # -----------------------------------------------------------------
   # read_string/3 — consome até a aspa de fechamento.
   # -----------------------------------------------------------------
@@ -95,16 +107,25 @@ defmodule Parser.Lexer do
     raise "string não fechada, aberta na linha #{line}"
   end
 
+  # quando encontra a sequência de escape \n, adiciona o caractere de nova linha à lista de caracteres acumulados e continua lendo a string
   defp read_string([?\\, ?n | rest], acc, line), do: read_string(rest, [?\n | acc], line)
+
+  # quando encontra a sequência de escape \t, adiciona o caractere de tabulação à lista de caracteres acumulados e continua lendo a string
   defp read_string([?\\, ?t | rest], acc, line), do: read_string(rest, [?\t | acc], line)
+
+  # quando encontra a sequência de escape \", adiciona o caractere de aspa dupla à lista de caracteres acumulados e continua lendo a string
   defp read_string([?\\, ?" | rest], acc, line), do: read_string(rest, [?" | acc], line)
+
+  # quando encontra a sequência de escape \\, adiciona o caractere de barra invertida à lista de caracteres acumulados e continua lendo a string
   defp read_string([?\\, ?\\ | rest], acc, line), do: read_string(rest, [?\\ | acc], line)
 
   defp read_string([?" | rest], acc, _line) do
+    # quando encontra a aspa de fechamento, reverte a lista de caracteres acumulados e converte para string
     {acc |> Enum.reverse() |> List.to_string(), rest}
   end
 
   defp read_string([char | rest], acc, line) do
+    # caso contrário, adiciona o caractere atual à lista de caracteres acumulados e continua lendo a string
     read_string(rest, [char | acc], line)
   end
 
@@ -113,6 +134,7 @@ defmodule Parser.Lexer do
   # -----------------------------------------------------------------
 
   defp read_word([], acc) do
+    # quando chega ao final da lista de caracteres, reverte a lista de caracteres acumulados e retorna
     {Enum.reverse(acc), []}
   end
 
@@ -136,7 +158,9 @@ defmodule Parser.Lexer do
   defp classify(word, line) do
     text = List.to_string(word)
 
+    # if/else encadeado: testa cada condição em ordem, e executa a primeira que for verdadeira
     cond do
+      #
       integer?(text) -> {:integer, line, String.to_integer(text)}
       float?(text) -> {:float, line, String.to_float(text)}
       true -> {:identifier, line, text}
@@ -147,6 +171,7 @@ defmodule Parser.Lexer do
   # resto for a string vazia.
   defp integer?(text) do
     case Integer.parse(text) do
+      # exemplo: Integer.parse("42") -> {42, ""} -> true
       {_number, ""} -> true
       _ -> false
     end
