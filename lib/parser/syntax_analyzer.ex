@@ -14,7 +14,7 @@ defmodule Parser.SyntaxAnalyzer do
   @doc "Recebe os tokens do Lexer, devolve {:ok, %AST.Module{}}."
   def run(tokens) do
     forms = parse_all(tokens, [])
-    {:ok, %AST.Module{name: "main", body: forms, meta: %{line: 1}}}
+    {:ok, forms}
   rescue
     error in RuntimeError -> {:error, error.message}
   end
