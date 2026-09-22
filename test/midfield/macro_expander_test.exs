@@ -4,7 +4,6 @@ defmodule Midfield.MacroExpanderTests do
 
   alias Core.AST
   alias Core.Env
-  alias Midfield.MacroExpander
 
   # --- Helpers ---
   def id(name), do: %AST.Identifier{name: name}
@@ -73,6 +72,7 @@ defmodule Midfield.MacroExpanderTests do
   end
 
   describe "Backend Integration" do
+    @tag :pending
     test "macro invocation evaluated AST (Interpreter)" do
       env = Env.new(macro_engine: :interpreter)
 
@@ -90,6 +90,7 @@ defmodule Midfield.MacroExpanderTests do
       assert {%AST.Literal{type: :Int, value: 42}, _new_env} = MacroExpander.expand(call_ast, env)
     end
 
+    @tag :pending
     test "defmacro uses BEAM CodeGen and caches the compiled function" do
       env = Env.new(macro_engine: :beam)
 

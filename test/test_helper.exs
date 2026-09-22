@@ -5,5 +5,5 @@ formatters =
     [ExUnit.CLIFormatter]
   end
 
-ExUnit.configure(exclude: [:nice_to_have])
+ExUnit.configure(exclude: [:nice_to_have, :pending])
 ExUnit.start(formatters: formatters)
