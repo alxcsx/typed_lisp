@@ -12,14 +12,17 @@ defmodule Midfield.MacroExpanderTests do
   def tup(elems), do: %AST.Tuple{elements: elems}
 
   describe "AST Expansion" do
-    test "expands regular expressions into Call structs" do
+    test "keeps non-macro calls as raw lists" do
       env = Env.new()
       # (+ 1 2)
       ast = lst([id(:+), int(1), int(2)])
 
-      assert {%AST.Call{
-                callee: :+,
-                args: [%AST.Literal{type: :Int, value: 1}, %AST.Literal{type: :Int, value: 2}]
+      assert {%AST.List{
+                elements: [
+                  %AST.Identifier{name: :+},
+                  %AST.Literal{type: :Int, value: 1},
+                  %AST.Literal{type: :Int, value: 2}
+                ]
               }, _new_env} =
                MacroExpander.expand(ast, env)
     end
@@ -33,7 +36,7 @@ defmodule Midfield.MacroExpanderTests do
           id(:defmacro),
           id(:identity),
           tup([id(:x)]),
-          lst([id(:x)])
+          e(lst([id(:x)]))
         ])
 
       assert {nil, new_env} = MacroExpander.expand(macro_ast, env)

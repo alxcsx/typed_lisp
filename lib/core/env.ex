@@ -7,7 +7,8 @@ defmodule Core.Env do
             types: %{},
             macros: %{},
             opts: [],
-            parent: nil
+            parent: nil,
+            current_module: nil
 
   def new(%Core.Env{} = parent), do: %Core.Env{parent: parent, opts: parent.opts}
 

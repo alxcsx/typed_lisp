@@ -1,5 +1,9 @@
 defmodule Midfield.MacroExpander do
-  @moduledoc "TODO: implementar MacroExpander"
+  @moduledoc """
+  Fase de macro: reconhece defmacro/quote/unquote e aplica macro calls.
+  NÃO classifica chamadas nem formas especiais — tudo aqui opera sobre
+  lista pura; o leitor downstream é que casa no head da lista.
+  """
   alias Core.Env
   alias Core.AST
   alias Core.AST.{List, Identifier, Tuple}
@@ -20,12 +24,14 @@ defmodule Midfield.MacroExpander do
           elements: [
             %Identifier{name: :defmacro},
             %Identifier{name: macro_name},
-            %Tuple{elements: args},
-            %List{elements: body} | _
+            args_node | body
           ]
         } = node,
         env
-      ) do
+      )
+      when is_struct(args_node, Tuple) or is_struct(args_node, List) do
+    args = args_node.elements
+
     macro_node =
       %AST.DefMacro{
         name: macro_name,
@@ -69,12 +75,13 @@ defmodule Midfield.MacroExpander do
     {unquoted_node, new_env}
   end
 
-  def expand(%List{elements: [%Identifier{name: fn_name} | args]} = node, env) do
+  def expand(%List{elements: [%Identifier{name: fn_name} = head | args]} = node, env) do
     if Env.has_macro?(env, fn_name) do
       apply_macro(fn_name, args, env) |> expand(env)
     else
+      # não é macro: mantém lista pura, o leitor downstream decide
       {expanded_args, new_env} = expand_list(args, env)
-      {%AST.Call{callee: fn_name, args: expanded_args, meta: node.meta}, new_env}
+      {%List{node | elements: [head | expanded_args]}, new_env}
     end
   end
 

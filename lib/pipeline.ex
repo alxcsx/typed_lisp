@@ -1,59 +1,40 @@
 defmodule Pipeline do
   @moduledoc """
-  Modulo principal que orquestra toda a compilação.
+  Módulo principal que orquestra toda a compilação.
   """
+
+  alias Core.AST.{Identifier, List, Module}
   alias Core.Env
 
   def run(source, opts \\ []) do
     mode = Keyword.get(opts, :mode, :interpret)
     env = Keyword.get(opts, :env, Env.new())
 
-    # Pipeline de arquivo:
-    with {:ok, tokens} <- Parser.Lexer.run(source),
-         {:ok, tree_list} <- Parser.SyntaxAnalyzer.run(tokens),
-         {:ok, modules, env} <- identify_modules(tree_list, env) do
-      compile_modules(modules, mode, env)
+    with {:ok, forms} <- parse(source),
+         {:ok, modules} <- identify_modules(forms) do
+      {:ok, Enum.map(modules, &compile_module(&1, mode, env)), env}
     end
-  end
-
-  defp run_backend(:interpret, ast, env), do: Backend.Interpreter.run(ast, env)
-  defp run_backend(:compile, ast, env), do: Backend.CodeGen.run(ast, env)
-
-  # --  Helpers
-  defp compile_modules(modules, mode, env) do
-    Enum.reduce_while(modules, {:ok, [], env}, fn module, {:ok, results, env} ->
-      case compile_module(module, mode, env) do
-        {:ok, result, env} -> {:cont, {:ok, [result | results], env}}
-      end
-    end)
   end
 
   def compile_module(module, mode, env) do
-    module_env = %{env | current_module: module.name}
-
-    with {:ok, expanded_ast, module_env} <- Midfield.MacroExpander.run(module, module_env),
-         {:ok, typed_ast, module_env} <- Midfield.TypeChecker.run(expanded_ast, module_env),
-         {:ok, result, module_env} <- run_backend(mode, typed_ast, module_env) do
-      # TODO: add result to global_env.modules
-      {:ok, result, module_env}
-    end
+    module_env = %{Env.new(env) | current_module: module.name}
+    {:ok, expanded, module_env} = Midfield.MacroExpander.run(module, module_env)
+    {:ok, typed_ast, module_env} = Midfield.TypeChecker.run(expanded, module_env)
+    {:ok, result, _module_env} = run_backend(mode, typed_ast, module_env)
+    result
   end
 
-  defp identify_modules(tree_list, env) do
-    alias Core.AST.{List, Module, Identifier}
-
-    {inner_modules_raw, loose_expressions} =
-      tree_list
-      |> Enum.split_with(fn
-        %List{elements: [%Identifier{name: :"def-module"} | _]} -> true
-        _ -> false
-      end)
+  @doc "Divide as formas do parser em módulos; sobras viram :__main__."
+  def identify_modules(forms) do
+    {inner_modules_raw, loose_expressions} = Enum.split_with(forms, &def_module?/1)
 
     inner_modules =
-      inner_modules_raw
-      |> Enum.map(fn %List{elements: [_defmodule, %Identifier{name: name}, body], meta: meta} ->
-        %Module{name: name, body: body, meta: meta}
-      end)
+      Enum.map(
+        inner_modules_raw,
+        fn %List{elements: [_kw, %Identifier{name: name} | body], meta: meta} ->
+          %Module{name: name, body: body, meta: meta}
+        end
+      )
 
     modules =
       case loose_expressions do
@@ -64,6 +45,21 @@ defmodule Pipeline do
           inner_modules ++ [%Module{name: :__main__, body: loose_expressions, meta: %{line: 0}}]
       end
 
-    {:ok, modules, env}
+    {:ok, modules}
   end
+
+  # --  Helpers
+
+  defp parse(source) do
+    with {:ok, tokens} <- Parser.Lexer.run(source),
+         {:ok, forms} <- Parser.SyntaxAnalyzer.run(tokens) do
+      {:ok, forms}
+    end
+  end
+
+  defp def_module?(%List{elements: [%Identifier{name: :"def-module"} | _]}), do: true
+  defp def_module?(_), do: false
+
+  defp run_backend(:interpret, ast, env), do: Backend.Interpreter.run(ast, env)
+  defp run_backend(:compile, ast, env), do: Backend.CodeGen.run(ast, env)
 end
