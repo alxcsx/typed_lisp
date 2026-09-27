@@ -11,18 +11,19 @@ defmodule Parser.Lexer do
       {:symbol,     linha, :chave}     vindo de  :chave
       {:identifier, linha, "nome"}     vira átomo no SyntaxAnalyzer
   """
+  # esse formato guarda a linha pra o retorno de erros ser mais preciso. Esse formato especifico tambem é o usado em leex, yecc
 
   # Caracteres que encerram um número, identificador ou keyword.
   # Tudo que não está aqui pode compor um nome: por isso
   # `is-empty?`, `+`, `<=`, `*global-var*` são identificadores válidos.
   @delimiters [?(, ?), ?[, ?], ?{, ?}, ?", ?;, ?\s, ?\t, ?\r, ?\n]
 
-  @doc "Recebe o código-fonte, devolve {:ok, tokens}."
+  @doc "Recebe o código-fonte, devolve {:ok, List de tokens}."
   def run(source) when is_binary(source) do
     tokens =
       source
       |> String.to_charlist()
-      |> scan(1, [])
+      |> scan(1, []) # o primeiro argumento na verdade é o resultado de String.to_charlist(), que é uma lista de caracteres. O segundo argumento é a linha atual, que começa em 1. O terceiro argumento é a lista de tokens acumulados, que começa vazia.
 
     {:ok, tokens}
   end
@@ -56,7 +57,7 @@ defmodule Parser.Lexer do
   # tratada pela cláusula acima, mantendo a contagem certa).
   defp scan([?; | rest], line, tokens) do
     # até ser uma quebra de linha, descarte todos os chars
-    remaining = Enum.drop_while(rest, fn char -> char != ?\n end)
+    remaining = Enum.drop_while(rest, fn char -> char != ?\n end) # em caso de caractere /n assim como eu escrevi, o ?\n é o caractere de nova linha, não os dois caracteres / e n juntos, então funciona corretamente
     scan(remaining, line, tokens)
   end
 
