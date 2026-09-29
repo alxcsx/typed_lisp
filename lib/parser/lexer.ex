@@ -23,7 +23,8 @@ defmodule Parser.Lexer do
     tokens =
       source
       |> String.to_charlist()
-      |> scan(1, []) # o primeiro argumento na verdade é o resultado de String.to_charlist(), que é uma lista de caracteres. O segundo argumento é a linha atual, que começa em 1. O terceiro argumento é a lista de tokens acumulados, que começa vazia.
+      # o primeiro argumento na verdade é o resultado de String.to_charlist(), que é uma lista de caracteres. O segundo argumento é a linha atual, que começa em 1. O terceiro argumento é a lista de tokens acumulados, que começa vazia.
+      |> scan(1, [])
 
     {:ok, tokens}
   end
@@ -57,7 +58,8 @@ defmodule Parser.Lexer do
   # tratada pela cláusula acima, mantendo a contagem certa).
   defp scan([?; | rest], line, tokens) do
     # até ser uma quebra de linha, descarte todos os chars
-    remaining = Enum.drop_while(rest, fn char -> char != ?\n end) # em caso de caractere /n assim como eu escrevi, o ?\n é o caractere de nova linha, não os dois caracteres / e n juntos, então funciona corretamente
+    # em caso de caractere /n assim como eu escrevi, o ?\n é o caractere de nova linha, não os dois caracteres / e n juntos, então funciona corretamente
+    remaining = Enum.drop_while(rest, fn char -> char != ?\n end)
     scan(remaining, line, tokens)
   end
 
