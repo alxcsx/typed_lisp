@@ -30,13 +30,13 @@ defmodule Midfield.MacroExpanderTests do
     test "defmacro stores definition in Env" do
       env = Env.new(macro_engine: :interpreter)
 
-      # (defmacro identity (x) x)
+      # (defmacro identity [x] x)
       macro_ast =
         lst([
           id(:defmacro),
           id(:identity),
           tup([id(:x)]),
-          e(lst([id(:x)]))
+          id(:x)
         ])
 
       assert {nil, new_env} = MacroExpander.expand(macro_ast, env)
